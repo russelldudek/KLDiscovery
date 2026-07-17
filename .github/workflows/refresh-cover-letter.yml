@@ -1,0 +1,70 @@
+name: Refresh cover letter PDF
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'cover-letter.html'
+      - 'styles.css'
+      - 'brand-tokens.css'
+      - '.github/workflows/refresh-cover-letter.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Render cover letter PDF
+        shell: bash
+        run: |
+          set -euo pipefail
+          CHROME="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser)"
+          test -n "$CHROME"
+          mkdir -p docs
+          "$CHROME" \
+            --headless \
+            --no-sandbox \
+            --disable-gpu \
+            --disable-dev-shm-usage \
+            --allow-file-access-from-files \
+            --no-pdf-header-footer \
+            --print-to-pdf="${GITHUB_WORKSPACE}/docs/Russell-Dudek-KLDiscovery-Cover-Letter.pdf" \
+            "file://${GITHUB_WORKSPACE}/cover-letter.html"
+
+      - name: Verify one-page PDF and body URL
+        shell: bash
+        run: |
+          python -m pip install --quiet pypdf
+          python - <<'PY'
+          from pathlib import Path
+          from pypdf import PdfReader
+          path = Path('docs/Russell-Dudek-KLDiscovery-Cover-Letter.pdf')
+          reader = PdfReader(str(path))
+          assert len(reader.pages) == 1, f'Expected 1 page, got {len(reader.pages)}'
+          text = '\n'.join(page.extract_text() or '' for page in reader.pages)
+          url = 'https://russelldudek.github.io/KLDiscovery/'
+          assert url in text, 'Candidate vision URL is missing from PDF text'
+          assert 'RoleForge' not in text and 'roleforge' not in text, 'Private system name exposed'
+          print('Verified one-page cover letter with candidate vision URL.')
+          PY
+
+      - name: Commit refreshed PDF
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/Russell-Dudek-KLDiscovery-Cover-Letter.pdf
+          if git diff --cached --quiet; then
+            echo "PDF is already current."
+          else
+            git commit -m "Refresh cover letter PDF"
+            git push origin HEAD:main
+          fi
