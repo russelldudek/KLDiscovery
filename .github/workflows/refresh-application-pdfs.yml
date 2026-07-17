@@ -61,7 +61,7 @@ jobs:
           for path, expected in checks:
               reader = PdfReader(path)
               assert len(reader.pages) == expected, f'{path}: expected {expected} pages, found {len(reader.pages)}'
-              text = '\n'.join(page.extract_text() or '' for page in reader.pages)
+              text = ' '.join(('\n'.join(page.extract_text() or '' for page in reader.pages)).split())
               assert 'Cardinal Building Products' in text, f'{path}: corrected employer name missing'
               assert 'Cardinal Health' not in text, f'{path}: obsolete employer name remains'
           PY
