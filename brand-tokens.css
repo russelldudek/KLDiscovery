@@ -13,3 +13,10 @@
   --success: #1d7a61; /* candidate-original resolved-state accent */
   --shadow: 0 24px 70px rgba(7,31,51,.16);
 }
+
+/* Desktop scenario controls: keep the six actions on one line at full-screen desktop widths. */
+@media (min-width:981px){
+  .model .scenario-tabs{flex-wrap:nowrap!important;gap:.38rem!important}
+  .model .scenario-tabs button{padding:.62rem .48rem!important;font-size:.7rem!important;flex:0 1 auto!important;white-space:nowrap!important}
+  .model .scenario-tabs .scenario-reset{margin-left:0!important}
+}
