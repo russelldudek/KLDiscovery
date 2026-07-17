@@ -2,15 +2,14 @@
 
 ## Campaign state
 
-- Campaign repository: https://github.com/russelldudek/KLDiscovery
 - Audited branch: `main`
 - Job posting: https://ekug.fa.us6.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1001/job/2023
 - Candidate vision target: https://russelldudek.github.io/KLDiscovery/
-- State before live deployment verification: `building`
+- Current state: `blocked`
 
 ## Source and artifact checks
 
-- Manifest: passed locally
+- Manifest: passed
 - Factual integrity: passed
 - Narrative continuity: passed
 - Visible company identity: passed using a documented typeset nominative treatment
@@ -54,4 +53,4 @@
 
 ## Completion boundary
 
-The source, documents, PDFs, and local rendered reviews pass. The campaign remains `building` until the repository-named GitHub Pages deployment and every live route, interaction, identity treatment, reciprocal link, and PDF download are verified against the final `main` head.
+The complete campaign source and generated PDFs are committed to `main`, and a repository-named GitHub Pages deployment workflow is installed. Independent retrieval of the live Pages routes and PDF responses is not available in the current connected environment, so the campaign remains `blocked` rather than being overstated as complete. The remaining gate is live verification of every route, interaction, identity treatment, reciprocal link, and download against the deployed `main` state.
