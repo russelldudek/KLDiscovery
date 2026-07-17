@@ -1,0 +1,74 @@
+name: Refresh application PDFs
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/refresh-application-pdfs.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install browser and PDF tools
+        run: |
+          npm install playwright
+          npx playwright install --with-deps chromium
+          pip install pypdf
+      - name: Generate PDFs from canonical HTML
+        run: |
+          python3 -m http.server 8000 >/tmp/kld-http.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill $SERVER_PID' EXIT
+          sleep 2
+          node <<'NODE'
+          const { chromium } = require('playwright');
+          (async () => {
+            const browser = await chromium.launch({headless:true});
+            const page = await browser.newPage();
+            const jobs = [
+              ['resume.html','docs/Russell-Dudek-KLDiscovery-Resume.pdf'],
+              ['cover-letter.html','docs/Russell-Dudek-KLDiscovery-Cover-Letter.pdf']
+            ];
+            for (const [route, output] of jobs) {
+              await page.goto(`http://127.0.0.1:8000/${route}`, {waitUntil:'networkidle'});
+              await page.pdf({path:output, format:'Letter', printBackground:true, preferCSSPageSize:true, margin:{top:'0',right:'0',bottom:'0',left:'0'}});
+            }
+            await browser.close();
+          })();
+          NODE
+      - name: Verify pagination and employer name
+        run: |
+          python <<'PY'
+          from pypdf import PdfReader
+          checks = [
+              ('docs/Russell-Dudek-KLDiscovery-Resume.pdf', 2),
+              ('docs/Russell-Dudek-KLDiscovery-Cover-Letter.pdf', 1),
+          ]
+          for path, expected in checks:
+              reader = PdfReader(path)
+              assert len(reader.pages) == expected, f'{path}: expected {expected} pages, found {len(reader.pages)}'
+              text = '\n'.join(page.extract_text() or '' for page in reader.pages)
+              assert 'Cardinal Building Products' in text, f'{path}: corrected employer name missing'
+              assert 'Cardinal Health' not in text, f'{path}: obsolete employer name remains'
+          PY
+      - name: Commit refreshed PDFs
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/Russell-Dudek-KLDiscovery-Resume.pdf docs/Russell-Dudek-KLDiscovery-Cover-Letter.pdf
+          git diff --cached --quiet || git commit -m 'Refresh corrected resume and cover letter PDFs'
+          git push origin main
