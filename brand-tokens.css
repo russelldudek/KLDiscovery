@@ -1,0 +1,15 @@
+:root {
+  --kld-blue: #0067a9; /* source-sampled from current public KLDiscovery identity */
+  --kld-cyan: #00a5d8; /* source-sampled accent */
+  --kld-navy: #071f33; /* source-sampled dark surface */
+  --kld-slate: #334b5e; /* source-sampled neutral */
+  --kld-mist: #eef5f8; /* source-sampled page field */
+  --paper: #ffffff;
+  --ink: #10212d;
+  --muted: #587080;
+  --line: #c8d7df;
+  --signal: #e9a73f; /* candidate-original anomaly / decision accent */
+  --danger: #b8444f; /* candidate-original exception accent */
+  --success: #1d7a61; /* candidate-original resolved-state accent */
+  --shadow: 0 24px 70px rgba(7,31,51,.16);
+}
